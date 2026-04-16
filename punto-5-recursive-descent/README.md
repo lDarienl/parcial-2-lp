@@ -1,18 +1,53 @@
-## Punto 5 — Descenso recursivo y `match`
+# Punto 5 — Descenso recursivo y algoritmo de emparejamiento (`match`)
 
-### Qué se implementó
+## Qué pide el enunciado
 
-- **`match`**: consume el token actual si su tipo coincide con el esperado; si no, lanza `ParseError`.
-- **Gramática LL(1)** con asignaciones (`ID = expr ;`), condicionales `if ( expr ) { ... }` y opcional `else { ... }`.
-- **Expresiones** tipo calculadora: `+ - * /`, paréntesis, `NUM`, `ID`.
+1. **Algoritmo de emparejamiento** para un parser **descendente recursivo** (típicamente la función `match` / `eat` sobre el token actual).  
+2. **Gramática** que incluya **asignación** y **condicionales**.  
+3. **Pruebas** (aquí: tests automáticos) que validen sintaxis aceptada y rechazada.
 
-### Corrección respecto al borrador
+## Por qué existe `match`
 
-1. **Lista de sentencias**: no se puede usar “hasta `}`” en el programa raíz. Se parametriza el fin de `stmt_list`: termina en **EOF** o en **`}`** (dentro de un bloque).
-2. **`else` opcional**: con `if ... { }` solo, al salir del bloque el siguiente token puede ser `else`, otro `if`, un `ID`, `}` o EOF.
-3. **Lexer propio**: el del punto 4 no traía `if`, `else`, `;`, `{`, `}`, ni `ID`.
+En descenso recursivo, cada regla **espera** terminales concretos (`;`, `=`, `if`, …).  
+**Cómo funciona `match`:** si el token actual tiene el tipo esperado, **consume** (avanza el índice); si no, **error sintáctico** con mensaje claro.
 
-### Pruebas
+**Por qué:** centraliza la comprobación de terminales y evita duplicar lógica en cada regla; es el “pegamento” entre lexer y parser.
+
+## Gramática implementada (qué y por qué LL(1))
+
+Programa y sentencias:
+
+- `program → stmt_list EOF`  
+- `stmt_list → stmt stmt_list | ε` (ε al llegar a `EOF` o al cerrar un bloque con `}`)  
+- `stmt → assign | if_stmt`  
+- `assign → ID '=' expr ';'`  
+- `if_stmt → IF '(' expr ')' block else_opt`  
+- `else_opt → ELSE block | ε`  
+- `block → '{' stmt_list '}'`
+
+Expresión (precedencia `* /` sobre `+ -`, paréntesis):
+
+- `expr → term (('+'|'-') term)*`  
+- `term → factor (('*'|'/') factor)*`  
+- `factor → NUM | ID | '(' expr ')'`
+
+**Por qué es LL(1) para elegir `stmt`:** el primer token de `assign` es siempre `ID`; el de `if_stmt` es `IF`. No hay ambigüedad con un solo símbolo de lookahead.
+
+**Detalle importante (cómo):** la lista de sentencias **no** puede usar la misma condición de fin en el programa raíz que dentro de `{ ... }`. En la raíz se para en **EOF**; dentro del bloque se para antes de **`}`** y luego `match('RBRACE')` cierra el bloque. **Por qué:** si mezclas criterios, o fallas en programas válidos o aceptas basura.
+
+## Archivos
+
+| Archivo | Rol |
+|---------|-----|
+| `src/tokenizer.py` | Palabras clave (`if`, `else`), `ID`, `NUM`, operadores, llaves, `;`, token `EOF`. |
+| `src/recursive_descent.py` | Parser + `match` / `advance` + `parse()` de entrada. |
+| `tests/test_parser.py` | Casos válidos e inválidos. |
+
+---
+
+## Cómo ejecutarlo
+
+**Windows:**
 
 ```powershell
 cd punto-5-recursive-descent
@@ -20,7 +55,17 @@ python -m pip install pytest
 python -m pytest -q
 ```
 
-### Ejemplo de programa válido
+**Ubuntu / Linux:**
+
+```bash
+cd punto-5-recursive-descent
+python3 -m pip install pytest
+python3 -m pytest -q
+```
+
+Para usar el parser desde código, añade `src` al path de importación (`PYTHONPATH=src` o ejecuta tests como arriba).
+
+## Ejemplo válido
 
 ```
 x = 1;

@@ -1,156 +1,119 @@
 # Parcial 2 — Lenguajes de programación y transducción
 
-Repositorio con los puntos del parcial: gramática e implementación NoSQL (ANTLR), ambigüedad del `if`, comparación CYK vs predictivo, y parser descendente con `match`.
+Repositorio con la resolución integral del parcial: gramática NoSQL (ANTLR), análisis de ambigüedad, comparación de rendimiento CYK vs Predictivo, y parser descendente manual.
 
 ## Estructura de carpetas
 
 ```text
 parcial-2-lp/
 ├── README.md                 ← Este archivo
-├── .gitignore
+├── venv/                     ← Entorno virtual (no incluido en git)
 ├── punto-1-2-nosql-crud/     Puntos 1 y 2: DSL CRUD + ANTLR + Python
-│   ├── grammar/
-│   ├── scripts/              generate_parser.ps1, generate_parser_ubuntu.sh
-│   ├── src/
-│   ├── tests/
-│   ├── tools/                JAR de ANTLR (opcional en git; ver .gitignore)
-│   ├── pyproject.toml
-│   └── requirements.txt
-├── punto-3-ambiguedad/       Punto 3: demostración y corrección (markdown)
-├── punto-4-cyk-calculator/   Punto 4: CYK vs parser predictivo + benchmark
-│   ├── src/
-│   ├── tests/
-│   ├── comparaciones/
-│   └── pyproject.toml
-└── punto-5-recursive-descent/  Punto 5: descenso recursivo + match
-    ├── src/
-    ├── tests/
-    └── pyproject.toml
+│   ├── grammar/              Gramática .g4
+│   ├── scripts/              Scripts de generación (Bash/PS)
+│   ├── src/                  Código fuente del intérprete
+│   └── tests/                Pruebas unitarias (pytest)
+├── punto-3-ambiguedad/       Punto 3: Análisis teórico (Markdown)
+├── punto-4-cyk-calculator/   Punto 4: CYK vs Predictivo + Benchmark
+│   ├── src/                  Implementación de algoritmos
+│   └── comparaciones/        Resultados y análisis de rendimiento
+└── punto-5-recursive-descent/ Punto 5: Descenso recursivo + match
+    ├── src/                  Código del parser manual
+    └── tests/                Pruebas de gramática
 ```
 
 ## Resumen de cada punto
 
 | Carpeta | Contenido |
 |---------|-----------|
-| **punto-1-2-nosql-crud** | Diseño de gramática (CRUD NoSQL estilo documentos) e implementación con **ANTLR4** y Python: lexer/parser generados, intérprete en memoria y pruebas. |
-| **punto-3-ambiguedad** | Análisis de una gramática `if-then-else` / emparejamiento: demostración, corrección equivalente a la forma *matched/unmatched*, y notas de verificación (solo documentación). |
-| **punto-4-cyk-calculator** | Parser **CYK** (CNF) y parser **predictivo** para una calculadora; script de **benchmark** y resultados comparativos en `comparaciones/`. |
-| **punto-5-recursive-descent** | Algoritmo de emparejamiento **`match`** en un parser **descendente recursivo** LL(1): asignaciones, `if` / `else` y expresiones aritméticas. |
+| **punto-1-2-nosql-crud** | Diseño de gramática NoSQL e implementación con **ANTLR4**. Incluye un intérprete en memoria con soporte para operaciones CRUD completas y filtrado dinámico. |
+| **punto-3-ambiguedad** | Demostración de la ambigüedad del `if-then-else` y corrección mediante la técnica de sentencias emparejadas (*matched/unmatched*). |
+| **punto-4-cyk-calculator** | Implementación del algoritmo **CYK** ($O(n^3)$) y un parser **predictivo** ($O(n)$) para comparar empíricamente la eficiencia de la programación dinámica frente a técnicas LL(1). |
+| **punto-5-recursive-descent** | Implementación manual de un parser descendente recursivo utilizando una función **`match`** para validar la sintaxis de asignaciones y condicionales. |
 
 ---
 
-## Cómo ejecutar cada punto
+## Configuración Inicial (Ubuntu / EC2)
 
-### Requisitos comunes
-
-- **Python 3.10+** (recomendado crear un venv en la raíz o dentro de cada carpeta de proyecto).
-
-**Windows (PowerShell), ejemplo de venv en la raíz del repo:**
-
-```powershell
-cd "ruta\al\parcial-2-lp"
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
-
-**Ubuntu / Linux:**
+Antes de ejecutar los puntos, prepara el entorno virtual en la raíz del proyecto:
 
 ```bash
-cd /ruta/al/parcial-2-lp
-python3 -m venv .venv
-source .venv/bin/activate
+sudo apt update && sudo apt install -y python3-venv
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
 ```
 
 ---
 
-### Punto 1 y 2 — `punto-1-2-nosql-crud`
+## Ejecución por Puntos
 
-1. **Instalar dependencias**
+### Punto 1 y 2 — NoSQL CRUD (ANTLR4)
 
-```powershell
-cd punto-1-2-nosql-crud
-python -m pip install -r requirements.txt pytest
-```
-
-2. **Regenerar el parser ANTLR** (solo si cambias `grammar/grammar1.g4` o clonas sin los `.py` generados). Necesitas **Java** en el `PATH`.
-
-**Windows:**
-
-```powershell
-cd punto-1-2-nosql-crud
-.\scripts\generate_parser.ps1
-```
-
-**Ubuntu:**
-
+1. **Instalar dependencias y generar parser:**
 ```bash
 cd punto-1-2-nosql-crud
+pip install -r requirements.txt pytest
 chmod +x scripts/generate_parser_ubuntu.sh
 ./scripts/generate_parser_ubuntu.sh
 ```
 
-3. **Pruebas**
-
-```powershell
-cd punto-1-2-nosql-crud
-python -m pytest -q
+2. **Ejecutar Pruebas Unitarias:**
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+pytest tests/
 ```
 
-4. **Ejecutar el intérprete** (`PYTHONPATH` debe incluir `src`):
-
-```powershell
-cd punto-1-2-nosql-crud
-$env:PYTHONPATH = "src"
-python src/main.py tests/test_crud.nosql
+3. **Probar el intérprete con un script `.nosql`:**
+```bash
+python3 src/main.py tests/test_crud.nosql
 ```
 
 ---
 
-### Punto 3 — `punto-3-ambiguedad`
+### Punto 3 — Ambigüedad (Documentación)
 
-No hay código ejecutable: revisa los archivos Markdown (`demostracion.md`, `correccion.md`, `verificacion.md`) en un visor o en el IDE.
-
----
-
-### Punto 4 — `punto-4-cyk-calculator`
-
-```powershell
-cd punto-4-cyk-calculator
-python -m pip install pytest
-python -m pytest -q
-```
-
-Evaluar una expresión (desde `src`):
-
-```powershell
-cd punto-4-cyk-calculator\src
-python main.py "2 + 3 * (4 + 1)" --parser cyk
-python main.py "2 + 3 * (4 + 1)" --parser predictive
-```
-
-Benchmark (imprime CSV por consola):
-
-```powershell
-cd punto-4-cyk-calculator\src
-python main.py --benchmark --max-ops 200 --step 20 --runs 20
-```
-
-En Ubuntu, sustituye rutas con `/` y usa `python3` si aplica.
+Este punto es de carácter teórico. Los archivos detallan la lógica de resolución del problema del *dangling else*:
+* `demostracion.md`: Prueba de la ambigüedad en la gramática original.
+* `correccion.md`: Propuesta de gramática jerarquizada no ambigua.
 
 ---
 
-### Punto 5 — `punto-5-recursive-descent`
+### Punto 4 — CYK vs Predictivo (Benchmark)
 
-```powershell
+1. **Ejecutar el Benchmark de rendimiento:**
+```bash
+cd punto-4-cyk-calculator/src
+python3 main.py --benchmark --max-ops 120 --step 20 --runs 25
+```
+*Nota: Este comando generará una tabla comparativa demostrando la superioridad del parser predictivo en entradas largas.*
+
+2. **Probar un cálculo específico:**
+```bash
+python3 main.py "5 + 10 * (2 + 3)" --parser cyk
+```
+
+---
+
+### Punto 5 — Descenso Recursivo (Match)
+
+1. **Validar la gramática (Asignaciones e IF/ELSE):**
+```bash
 cd punto-5-recursive-descent
-python -m pip install pytest
-python -m pytest -q
+pytest tests/
 ```
 
-El parser se usa importando `parse` desde `recursive_descent` con `PYTHONPATH=src`, o ampliando el proyecto con un `main.py` si lo necesitas para la defensa.
+2. **Prueba rápida por consola:**
+```bash
+export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+python3 -c "from src.recursive_descent import parse; parse('x = 5; if (x) { y = 10; }'); print('Sintaxis válida')"
+```
 
 ---
 
-## Detalle del DSL (punto 1)
-
-El lenguaje permite operaciones **CRUD** sobre colecciones de documentos con sintaxis inspirada en SQL y valores tipo JSON. Palabras reservadas incluyen `INSERT`, `GET`, `UPDATE`, `DELETE`, `FROM`, `INTO`, `SET`, `WHERE`, literales (`STRING`, `NUMBER`, booleanos, `null`), operadores de comparación y lógicos (`AND`, `OR`, `NOT`), y comentarios `//`. La gramática completa está en `punto-1-2-nosql-crud/grammar/grammar1.g4`.
+## Detalle Técnico del DSL
+El lenguaje diseñado permite manipular documentos similares a JSON. Soporta:
+- **Operaciones:** `INSERT INTO`, `GET FROM`, `UPDATE SET`, `DELETE FROM`.
+- **Tipos de Datos:** Strings, Numbers, Booleans y Null.
+- **Lógica:** Paréntesis para agrupación y operadores `AND`, `OR`, `NOT`.
+- **Filtros:** Cláusula `WHERE` con operadores de comparación (`==`, `!=`, `>`, `<`, etc.).

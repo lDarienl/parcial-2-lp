@@ -1,42 +1,43 @@
-## Corrección (gramática no ambigua) — relación con el enunciado
+# Punto 3 — Corrección (gramática no ambigua)
 
-La solución estándar en libros de compiladores (p. ej. *Dragon Book*) separa **sentencias emparejadas** (cada `if` tiene su `else` cuando hace falta) y **sentencias no emparejadas** / abiertas. Una forma equivalente es:
+## Qué pide el enunciado (segunda parte)
 
-$$\begin{aligned}
+Si la gramática fuera ambigua, hay que aplicar las **operaciones habituales** para obtener una **no ambigua**: separar lo que puede “quedar abierto” (un `if` sin `else` pendiente) de lo que va **emparejado** (cada `if` en ciertas posiciones va obligado con su `else` en la plantilla).
+
+## Gramática estándar (por qué funciona)
+
+Se usan dos no terminales (nombres del *Dragon Book*):
+
+| Rol | Idea |
+|-----|------|
+| `matched_stmt` | Sentencias donde cada `if` introducido por la regla recursiva “cerrada” va con su `else` en la misma plantilla. |
+| `unmatched_stmt` | Sentencias con al menos un `if` que puede quedar **sin** `else` “resuelto” en esa rama. |
+
+$$
+\begin{aligned}
 \text{stmt} &\to \text{matched\_stmt} \mid \text{unmatched\_stmt} \\
 \text{matched\_stmt} &\to \texttt{if expr then matched\_stmt else matched\_stmt} \mid \texttt{otras} \\
 \text{unmatched\_stmt} &\to \texttt{if expr then stmt} \\
 &\mid \texttt{if expr then matched\_stmt else unmatched\_stmt}
-\end{aligned}$$
+\end{aligned}
+$$
 
-### Equivalencia con la gramática del enunciado
+**Por qué elimina el dangling else:** en \(\texttt{if } e_1 \texttt{ then } \boxed{\phantom{S}} \texttt{ else } \ldots\), lo que puede ir en \(\boxed{\phantom{S}}\) cuando debe ser “emparejado” **no** puede ser un `if` suelto sin reglas que fuercen su `else` en el lugar adecuado; la gramática **restringe** esa posición a `matched_stmt` donde la estructura del `else` está controlada.
 
-Si renombramos:
+## Cómo se relaciona con la gramática del enunciado
+
+Renombrando:
 
 | Enunciado | Rol |
 |-----------|-----|
-| `prop` | Mezcla de sentencias “abiertas” y “emparejadas” → corresponde a `stmt`. |
-| `prop_emparejada` | Solo formas donde cada `if` que abre con reglas de `prop_emparejada` va acompañado de `else` en la misma plantilla → corresponde a `matched_stmt`. |
+| `prop` | Mezcla “abierta + emparejada” → análogo a `stmt`. |
+| `prop_emparejada` | Formas construidas solo con la plantilla `if … then … else …` (hasta llegar a `otras`) → análogo a `matched_stmt`. |
 
-Entonces:
+- `prop → if expr then prop` permite el caso **abierto** en la rama del `then` (como `unmatched_stmt → if expr then stmt`).
+- `prop_emparejada → if expr then prop_emparejada else prop` obliga a que entre el `then` y el `else` haya algo **emparejable** por esa regla; el `else` cierra con un `prop` general.
 
-- `prop → if expr then prop` es la rama “`if` sin emparejar en la rama then” (`unmatched` parcial).
-- `prop → prop_emparejada` permite que la sentencia completa sea una sentencia emparejada.
-- `prop_emparejada → if expr then prop_emparejada else prop` es `if expr then matched_stmt else stmt`: la rama del `then` debe ser **emparejada**; la del `else` puede ser cualquier `stmt` (abierta o no).
+**Conclusión:** la “corrección” de los libros y la del enunciado son la **misma idea** con distinto nombre; no es un algoritmo distinto, es la **misma restricción** hecha explícita para el análisis LL.
 
-Esa es **exactamente** la restricción que elimina el “dangling else” para la cadena típica: no puedes colocar un `if` sin `else` “en medio” de un `if … else` externo cuando la gramática exige que esa posición sea `prop_emparejada`.
+## Nombres alternativos (`prop_match` / `prop_open`)
 
-### La tabla “prop_match / prop_open” que suele escribirse en clase
-
-Muchas guías presentan lo mismo con otros nombres:
-
-$$\text{prop} \to \text{prop\_match} \mid \text{prop\_open}$$
-
-con reglas análogas a `matched_stmt` y `unmatched_stmt`. Es **la misma idea** que el enunciado con `prop` y `prop_emparejada`; no es un “parche” distinto, sino una **reorganización** para que la lectura sea más clara.
-
-### Resumen para el informe
-
-- La gramática del **enunciado ya está diseñada para quitar la ambigüedad del `else` colgante** respecto de la gramática ingenua.
-- La “corrección” de los libros **no contradice** al enunciado: la **refina** en notación (`matched` / `unmatched` o `match` / `open`) y demuestra por qué funciona.
-
-Si piden “operaciones para que no sea ambigua” pensando en la gramática **ingenua** de un solo no terminal, las operaciones son: **introducir un no terminal de sentencias emparejadas** y **restringir** dónde puede aparecer un `if` sin `else` (solo en ramas `then` controladas por estas reglas).
+Algunas guías escriben \(\text{prop} \to \text{prop\_match} \mid \text{prop\_open}\) con reglas equivalentes. **Misma técnica**, distinta etiqueta: sirve para explicar en clase sin depender del nombre `matched_stmt`.
