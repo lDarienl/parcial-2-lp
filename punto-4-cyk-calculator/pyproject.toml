@@ -1,0 +1,12 @@
+[project]
+name = "punto4-cyk-calculator"
+version = "0.1.0"
+description = "Comparación CYK vs parser predictivo para calculadora"
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

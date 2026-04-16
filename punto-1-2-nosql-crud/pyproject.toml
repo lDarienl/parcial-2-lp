@@ -1,0 +1,13 @@
+[project]
+name = "nosql-crud-dsl"
+version = "0.1.0"
+description = "DSL CRUD NoSQL con ANTLR4 y Python"
+requires-python = ">=3.10"
+dependencies = ["antlr4-python3-runtime>=4.13.2,<4.14"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,12 @@
+// 1. Crear datos
+INSERT INTO motos VALUES { "placa": "ABC123D", "marca": "Honda", "modelo": "NX190", "km": 0 };
+INSERT INTO motos VALUES { "placa": "XYZ789E", "marca": "Yamaha", "modelo": "XTZ", "km": 5000 };
+
+// 2. Actualizar el kilometraje de la Honda (Punto 1 y 2)
+UPDATE motos SET km = 10.5 WHERE placa == "ABC123D";
+
+// 3. Eliminar la otra moto
+DELETE FROM motos WHERE km > 1000;
+
+// 4. Consultar resultado final
+GET FROM motos;
