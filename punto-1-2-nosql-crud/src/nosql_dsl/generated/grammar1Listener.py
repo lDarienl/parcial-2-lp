@@ -1,4 +1,4 @@
-# Generated from grammar/grammar1.g4 by ANTLR 4.13.2
+# Generated from /home/ubuntu/Darien/LenguajesProgramacion/parcial-2-lp/punto-1-2-nosql-crud/grammar/grammar1.g4 by ANTLR 4.13.2
 from antlr4 import *
 if "." in __name__:
     from .grammar1Parser import grammar1Parser
